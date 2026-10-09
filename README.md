@@ -36,6 +36,15 @@ Es una web estática, sin dependencias ni instalación. Basta con abrir `index.h
 - La información almacenada es local. Las copias JSON contienen borradores y observaciones: trátalas como documentos privados de un menor.
 
 
+## Tutor de práctica simulado (ya disponible)
+
+En cada taller de la **Ruta Luau**, el alumno puede utilizar un tutor de práctica que ofrece hasta **tres preguntas o pistas guiadas** sobre el concepto de la actividad. Es gratuito, funciona en el propio navegador y **no realiza solicitudes a OpenAI**.
+
+- Permite escribir dudas e ir avanzando mediante orientaciones predefinidas.
+- **No es un modelo de IA ni comprende las preguntas**: las orientaciones dependen del taller y del turno. No evalúa el código ni conoce la situación real del alumno.
+- La conversación simulada no se guarda en las copias de seguridad ni en el progreso del navegador. Se reinicia al actualizar la página o cambiar de taller.
+- La conexión con la API real seguirá apagada hasta completar las autorizaciones y controles pendientes: https://github.com/talaverilla85/CodeQuest/issues/1.
+
 ## Tutor opcional con OpenAI (piloto, desactivado)
 
 Se ha preparado una función serverless en \`api/tutor.js\` y una interfaz supervisada en \`tutor-client.js\`. Utiliza el modelo **\`gpt-5.6-luna\`** y ofrece una única pista o pregunta socrática por consulta. La API no es un intérprete de Luau; las pruebas de código se realizan en Roblox Studio.
