@@ -36,7 +36,7 @@ function courseUnlocked(p,id){const idx=CURRICULUM_LESSONS.findIndex(l=>l.id===i
 function courseCheck(p,id){
  const m=CURRICULUM_BY_ID[id],e=courseEntry(p,id);if(!m)return null;
  const clean=e.code.split('\n').filter(line=>!(/^\s*--/.test(line))).join('\n');
- return m.rules.map(r=>{const reg=new RegExp(r.source,r.flags||'i');return {title:r.title,met:(clean.match(reg)||[]).length>=(r.minMatches||1)}});
+ return m.rules.map(r=>{const flags=r.flags||'i';const reg=new RegExp(r.source,flags+((r.minMatches||1)>1&&!flags.includes('g')?'g':''));return {title:r.title,met:(clean.match(reg)||[]).length>=(r.minMatches||1)}});
 }
 function courseOverview(p){
  const completed=courseCount(p,CURRICULUM_LESSONS.map(x=>x.id));
