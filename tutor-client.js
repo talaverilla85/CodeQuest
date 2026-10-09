@@ -1,11 +1,91 @@
 'use strict';
 /* CodeQuest: panel opcional de pistas con OpenAI. Solo en talleres Luau. */
-let tutorUi={lesson:null,visible:false,available:null,checking:false,busy:false,access:'',question:'',intent:'pista',consent:false,answer:'',error:''};
+let tutorUi={lesson:null,visible:false,available:null,checking:false,busy:false,access:'',question:'',intent:'pista',consent:false,answer:'',error:'',simQuestion:'',simTurns:[],simError:''};
+
+/* Tutor simulado: preguntas predefinidas. Todo se procesa en el navegador. */
+const SIMULATED_COACH={
+ lab1:[
+  '¿Qué variable guarda las vidas del jugador y con qué número empieza? Intenta señalar esa línea.',
+  'Cuando quieres sumar dos vidas, ¿qué parte de tu programa debería modificar el valor de esa variable?',
+  '¿Qué puedes mostrar con print para comprobar que el resultado coincide con tu predicción?'
+ ],
+ lab2:[
+  '¿Cuál es la cantidad inicial de monedas y cuántas debería perder el jugador al comprar?',
+  '¿Qué operación utilizarías para reducir el número guardado, sin crear una variable distinta?',
+  '¿Qué valor debería aparecer en Output después de la compra? Compruébalo en Studio.'
+ ],
+ lab3:[
+  '¿Cuántas llaves hacen falta para abrir la puerta? ¿Con qué número compararías la variable?',
+  '¿Qué significa exactamente mayor o igual que? ¿Debería abrirse la puerta con dos llaves?',
+  '¿Dónde termina el bloque de instrucciones que se ejecuta solamente si se cumple la condición?'
+ ],
+ lab4:[
+  'Si quieres una cuenta atrás, ¿en qué orden deberían aparecer los números?',
+  '¿Entre qué dos mensajes hace falta una pausa? ¿En qué unidad se expresa el tiempo?',
+  'Prueba a cambiar una sola pausa. ¿Cómo afecta al comportamiento de tu cuenta atrás?'
+ ],
+ lab5:[
+  '¿Cuál es la diferencia entre definir una función y pedirle que se ejecute?',
+  '¿Dónde colocarías la instrucción que muestra el mensaje para que pertenezca a la función?',
+  'Si quieres ver el saludo dos veces, ¿cuántas veces tendrás que llamar a esa función?'
+ ],
+ lab6:[
+  '¿Qué debería ocurrir exactamente cuando algo toca la plataforma?',
+  '¿Cómo se llama el evento de una Part que detecta un contacto? Comprueba la ortografía en Studio.',
+  '¿Dónde colocarías la instrucción que imprime el mensaje: al iniciar el Script o dentro de la función del evento?'
+ ],
+ lab7:[
+  '¿Una parte que no se ve deja también de bloquear al personaje? ¿Cómo lo comprobarías?',
+  'Busca una propiedad que cambie la visibilidad y otra que controle las colisiones. ¿Son independientes?',
+  'Prueba a modificar solo una propiedad y observa si el personaje puede atravesar la pared.'
+ ],
+ lab8:[
+  '¿Cuál es la única cosa especial que quieres que haga tu videojuego?',
+  'Divide tu idea en objetos, una regla y una prueba. ¿Qué parte puedes construir primero?',
+  '¿Qué resultado te demostraría que funciona tu mecánica? Pide a alguien que la pruebe.'
+ ]
+};
+function simulatedReply(m,turns,code){
+ const guides=SIMULATED_COACH[m.id]||SIMULATED_COACH.lab8;
+ const step=Math.min(turns,2);
+ if(!code.trim()&&step===0)return 'Todavía no tienes un borrador de código. ¿Qué instrucción podrías escribir primero para acercarte al objetivo de este taller?';
+ return guides[step];
+}
+function simulateTutorTurn(id){
+ if(!tutorPanelIsCurrent(id)||!CURRICULUM_BY_ID[id])return;
+ const s=tutorUi,q=s.simQuestion.trim().slice(0,350);
+ if(s.simTurns.length>=3){s.simError='Ya tienes tres orientaciones. Prueba tu siguiente hipótesis en Roblox Studio y vuelve después a empezar.';render();return}
+ if(q.length<5){s.simError='Escribe al menos una frase sobre lo que estás intentando.';render();return}
+ const m=CURRICULUM_BY_ID[id],p=current();
+ const reply=simulatedReply(m,s.simTurns.length,courseEntry(p,id).code||'');
+ s.simTurns.push({question:q,answer:reply});
+ s.simQuestion='';s.simError='';
+ render();
+}
+function resetSimTutor(id){
+ if(!tutorPanelIsCurrent(id))return;
+ tutorUi.simQuestion='';tutorUi.simTurns=[];tutorUi.simError='';
+ render();
+}
+function simulatedTutorPanel(m){
+ const s=tutorUi,hasTurns=s.simTurns.length>0;
+ return '<div class="sim-tutor"><div class="sim-tutor-title"><strong>🧠 Tutor de práctica</strong><span class="chip">SIN IA · GRATIS</span></div>'+
+ '<p class="subtle">Este simulador utiliza preguntas preparadas para cada taller. <b>No interpreta lo que escribes</b>, pero te ayuda a razonar paso a paso. Nada se envía a OpenAI.</p>'+
+ (hasTurns?'<div class="sim-dialog" role="log" aria-label="Conversación de práctica">'+s.simTurns.map(turn=>'<div class="sim-bubble student"><b>Tú</b><p>'+esc(turn.question)+'</p></div><div class="sim-bubble coach"><b>Tutor de práctica</b><p>'+esc(turn.answer)+'</p></div>').join('')+'</div>':
+ '<div class="sim-bubble coach"><b>Tutor de práctica</b><p>¿Qué querías que hiciera tu programa? ¿Qué esperabas ver cuando lo probaras?</p></div>')+
+ '<label class="note-label" for="tutor-sim-question">Mi respuesta o duda</label>'+
+ '<textarea id="tutor-sim-question" data-tutor-sim-question maxlength="350" rows="3" class="textarea" placeholder="He intentado..., pero sucede...">'+esc(s.simQuestion)+'</textarea>'+
+ (s.simError?'<div class="feedback error" role="alert">'+esc(s.simError)+'</div>':'')+
+ '<div class="button-row">'+uiBtn(s.simTurns.length>=3?'Prueba en Studio y reinicia':'Recibir orientación →','tutor-simulate',m.id,'btn-quiet btn-sm',s.simTurns.length>=3)+
+ (hasTurns?uiBtn('Reiniciar','tutor-sim-reset',m.id,'btn-secondary btn-sm'):'')+'</div>'+
+ '<p class="subtle">Después de estas pistas, comprueba una hipótesis en Roblox Studio. Recuerda que el simulador no verifica tu código.</p></div>';
+}
+
 function tutorWorkshop(m){
  const s=tutorUi;
- if(s.lesson!==m.id){s.lesson=m.id;s.visible=false;s.available=null;s.question='';s.answer='';s.error='';s.consent=false;s.access='';}
+ if(s.lesson!==m.id){s.lesson=m.id;s.visible=false;s.available=null;s.question='';s.answer='';s.error='';s.consent=false;s.access='';s.simQuestion='';s.simTurns=[];s.simError='';}
  return '<div class="helper-panel"><h3>🤖 Tutor IA · modo supervisado</h3>'+
- '<p>Aprende mediante una sola pista por turno. El tutor no debe escribir el programa por ti y puede equivocarse.</p>'+
+ '<p>Practica primero con las orientaciones gratuitas. La conexión real con OpenAI seguirá pendiente hasta completar las autorizaciones.</p>'+simulatedTutorPanel(m)+
  (!s.visible?uiBtn('Consultar disponibilidad','tutor-open',m.id,'btn-quiet btn-sm'):'')+
  (s.visible?'<div class="tutor-experiment">'+
  '<p class="subtle">Estado: '+(s.checking?'Comprobando…':s.available?'Disponible con autorización familiar':'Aún sin activar')+'</p>'+
@@ -57,6 +137,7 @@ async function tutorAsk(id){
  if(tutorPanelIsCurrent(id))render();
 }
 document.addEventListener('input',event=>{
+ if(event.target.matches?.('[data-tutor-sim-question]'))tutorUi.simQuestion=event.target.value.slice(0,350);
  if(event.target.matches?.('[data-tutor-access]'))tutorUi.access=event.target.value.slice(0,160);
  if(event.target.matches?.('[data-tutor-question]'))tutorUi.question=event.target.value.slice(0,350);
 });
@@ -68,6 +149,8 @@ document.addEventListener('click',event=>{
  const button=event.target.closest?.('[data-action]');
  if(!button)return;
  const id=button.dataset.id;
+ if(button.dataset.action==='tutor-simulate')simulateTutorTurn(id);
+ if(button.dataset.action==='tutor-sim-reset')resetSimTutor(id);
  if(button.dataset.action==='tutor-open')tutorAvailability(id);
  if(button.dataset.action==='tutor-ask')tutorAsk(id);
 });
