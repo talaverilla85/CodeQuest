@@ -140,8 +140,11 @@ module.exports=async function handler(req,res){
         'Prioriza siempre la protección de menores. No avergüences ni califiques al estudiante.',
       input:prompt
     },16000);
-    const answer=responseText(result);
+    let answer=responseText(result);
     if(!answer)return send(res,502,{error:'El tutor no ha podido responder. Prueba de nuevo más tarde.'});
+    // Barrera complementaria contra soluciones listas para copiar; no es infalible.
+    const looksLikeSolution=/```|(?:^|\n)\s*(?:local\s+|if\s+|function\s+|[A-Za-z_]\w*\s*=)/m.test(answer);
+    if(looksLikeSolution)answer='Antes de escribir la solución, mira tu código: ¿qué línea controla lo que esperabas que ocurriera y qué podrías cambiar para probar tu hipótesis?';
     return send(res,200,{answer:answer.slice(0,1400)});
   }catch(error){
     // No registrar preguntas ni código, tampoco respuestas de OpenAI.
