@@ -13,6 +13,8 @@
 - XP, insignias, bloqueo de mundos según progreso y sección para familias.
 - **Exportación** de un informe de progreso en texto plano.
 - **Laboratorio de escritura Luau** en nueve misiones: borrador editable, comprobaciones orientativas de patrones y pruebas reales en Roblox Studio (la web no ejecuta Luau).
+- **Dojo de depuración**, con cinco escenarios (condiciones, colisiones, funciones, eventos y tiempo), en tres etapas: hipótesis, prueba y corrección. Registra intentos, pistas y una explicación opcional.
+- **Sugerencia local del siguiente reto** basada únicamente en misiones finalizadas, intentos y pistas; no usa un modelo de IA ni afirma medir conocimientos automáticamente.
 - **Cuaderno de depuración**: qué esperaba, qué ocurrió y qué probó; genera una pregunta para un tutor que solicita pistas y no soluciones completas.
 - **Copias de seguridad locales**: exportación e importación JSON supervisada para no perder los avances al limpiar o cambiar de navegador.
 - Acceso directo a Roblox Studio y documentación oficial.
@@ -27,7 +29,8 @@ Es una web estática, sin dependencias ni instalación. Basta con abrir `index.h
 - El «tutor de pistas» actual **no es un chat de IA**: son pistas didácticas predefinidas.
 - Se recomienda que una persona adulta supervise la experiencia, especialmente al utilizar Roblox Studio, herramientas externas o compartir informes.
 - El código mostrado es didáctico. El editor/diario **no ejecuta Luau**; las pruebas de programación se hacen en Roblox Studio.
-- La autoevaluación y los informes recogen lo que el usuario declara; no verifican automáticamente lo sucedido en Roblox Studio.
+- La autoevaluación y los informes recogen lo que el usuario declara; no verifican automáticamente lo sucedido en Roblox Studio. El Dojo califica únicamente opciones predefinidas y no ejecuta scripts.
+- La información almacenada es local. Las copias JSON contienen borradores y observaciones: trátalas como documentos privados de un menor.
 
 ## Próximas fases propuestas
 1. Revisar la experiencia inicial con una familia y ajustar la dificultad y accesibilidad.
