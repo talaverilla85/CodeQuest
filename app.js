@@ -79,14 +79,17 @@ function dojoStats(p){
  return {finished:all.length,wrong};
 }
 function learningSuggestion(p){
- const d=doneN(p,['d1','d2','d3']),first=MISSIONS.find(m=>m.world==='diagnostico'&&!done(p,m.id));
+ const first=MISSIONS.find(m=>m.world==='diagnostico'&&!done(p,m.id));
  if(first)return {title:'Primero, descubramos tu punto de partida',detail:'Completa la evaluación inicial antes de decidir qué conceptos conviene reforzar.',action:'mission',id:first.id,label:'Continuar evaluación'};
- const uncertain=MISSIONS.filter(m=>done(p,m.id)).sort((a,b)=>((p.attempts[b.id]||0)+(p.hints[b.id]||0)*2)-((p.attempts[a.id]||0)+(p.hints[a.id]||0)*2));
- const challenge=uncertain.find(m=>(p.attempts[m.id]||0)>1 || (p.hints[m.id]||0)>0);
- if(challenge){const topic=challenge.id==='d3'?'pared':challenge.id==='d2'?'puerta':'espera';return {title:'Refuerza una habilidad con un detective',detail:'Has utilizado más de un intento o alguna pista. Es una oportunidad para investigar la causa con calma.',action:'dojo-open',id:topic,label:'Practicar depuración'};}
+ const topicByMission={d1:'pared',d2:'puerta',d3:'pared',w1a:'puerta',w1b:'puerta',w1c:'espera',w2a:'pared',w2b:'contacto',w2c:'funcion',w3a:'contacto',w3b:'puerta',w3c:'funcion'};
+ const challenges=MISSIONS.filter(m=>done(p,m.id)).sort((a,b)=>((p.attempts[b.id]||0)+(p.hints[b.id]||0)*2)-((p.attempts[a.id]||0)+(p.hints[a.id]||0)*2));
+ const needsReview=challenges.find(m=>((p.attempts[m.id]||0)>1||(p.hints[m.id]||0)>0)&&!((p.dojo||{})[topicByMission[m.id]]||{}).finished);
+ if(needsReview)return {title:'Refuerza un concepto con un detective',detail:'Esta recomendación se basa en los intentos y pistas utilizados; no es una evaluación automática del código.',action:'dojo-open',id:topicByMission[needsReview.id],label:'Practicar depuración'};
+ const next=MISSIONS.find(m=>m.world!=='diagnostico'&&worldUnlocked(p,m.world)&&!done(p,m.id));
+ if(next)return {title:'Construye una habilidad nueva',detail:'Continúa en '+next.title+'. Recuerda escribir tú el código y probarlo en Roblox Studio.',action:'mission',id:next.id,label:'Continuar aprendizaje'};
  const c=DOJO_CASES.find(x=>!((p.dojo||{})[x.id]||{}).finished);
- if(c)return {title:'Practica pensando como programador',detail:'El siguiente desafío te invita a detectar una causa, diseñar una prueba y proponer la corrección.',action:'dojo-open',id:c.id,label:'Abrir detective'};
- return {title:'Ahora, inventa tu próxima mecánica',detail:'Has trabajado todas las investigaciones. Sigue creando tus propios prototipos en Roblox Studio.',action:'nav',id:'map',label:'Volver a los mundos'};
+ if(c)return {title:'Practica pensando como programador',detail:'Investiga la causa, diseña una prueba y propone una corrección. Hay cinco casos diferentes.',action:'dojo-open',id:c.id,label:'Abrir detective'};
+ return {title:'Ahora, inventa tu próxima mecánica',detail:'Puedes diseñar y probar un prototipo en Roblox Studio. Recuerda explicar qué aprendiste.',action:'nav',id:'map',label:'Volver a los mundos'};
 }
 function coachBox(p){const r=learningSuggestion(p);return '<section class="card coach-pick"><div><span class="eyebrow">TU SIGUIENTE PASO · ORIENTACIÓN LOCAL</span><h3>🧠 '+esc(r.title)+'</h3><p>'+esc(r.detail)+'</p></div>'+uiBtn(esc(r.label)+' →',r.action,r.id,'btn-quiet btn-sm')+'</section>'}
 function dojoList(p){
